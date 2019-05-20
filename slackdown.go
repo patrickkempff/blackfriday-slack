@@ -8,6 +8,10 @@ import (
 	bf "gopkg.in/russross/blackfriday.v2"
 )
 
+const (
+	DefaultExtensions bf.Extensions = bf.Autolink | bf.Tables | bf.FencedCode
+)
+
 // Renderer is the rendering interface for slack output.
 type Renderer struct {
 	w             bytes.Buffer
@@ -21,6 +25,7 @@ var itemListMap = make(map[int]int)
 var (
 	strongTag        = []byte("*")
 	strikethroughTag = []byte("~")
+	emphTag          = []byte("_")
 	itemTag          = []byte("-")
 	codeTag          = []byte("`")
 	codeBlockTag     = []byte("```")
@@ -70,9 +75,14 @@ func (r *Renderer) cr(w io.Writer) {
 // RenderNode parses a single node of a syntax tree.
 func (r *Renderer) RenderNode(w io.Writer, node *bf.Node, entering bool) bf.WalkStatus {
 
+	println(node.Type.String())
+
 	switch node.Type {
 	case bf.Text:
-		r.esc(w, node.Literal)
+		if node.Parent.Type != bf.Image && node.Parent.Type != bf.TableCell {
+			r.esc(w, node.Literal)
+		}
+		break
 	case bf.Softbreak:
 		break
 	case bf.Hardbreak:
@@ -92,6 +102,7 @@ func (r *Renderer) RenderNode(w io.Writer, node *bf.Node, entering bool) bf.Walk
 		r.out(w, codeTag)
 		break
 	case bf.Emph:
+		r.out(w, emphTag)
 		break
 	case bf.Heading:
 		if entering {
@@ -100,7 +111,12 @@ func (r *Renderer) RenderNode(w io.Writer, node *bf.Node, entering bool) bf.Walk
 			r.out(w, strongTag)
 			r.cr(w)
 		}
+		break
 	case bf.Image:
+		if entering {
+			r.esc(w, node.LinkData.Destination)
+			r.cr(w)
+		}
 		break
 	case bf.Item:
 		if entering {
@@ -120,6 +136,7 @@ func (r *Renderer) RenderNode(w io.Writer, node *bf.Node, entering bool) bf.Walk
 		}
 		break
 	case bf.Link:
+		r.out(w, strongTag)
 		if entering {
 			r.out(w, linkTag)
 			if dest := node.LinkData.Destination; dest != nil {
@@ -171,12 +188,15 @@ func (r *Renderer) RenderNode(w io.Writer, node *bf.Node, entering bool) bf.Walk
 	case bf.Table:
 		break
 	case bf.TableCell:
+		println("TableCellTableCell")
 		break
 	case bf.TableHead:
+		println("TableHeadTableHeadTableHead")
 		break
 	case bf.TableBody:
 		break
 	case bf.TableRow:
+		println("TableRowTableRow")
 		break
 	default:
 		panic("Unknown node type " + node.Type.String())
