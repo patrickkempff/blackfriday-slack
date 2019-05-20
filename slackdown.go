@@ -186,15 +186,12 @@ func (r *Renderer) RenderNode(w io.Writer, node *bf.Node, entering bool) bf.Walk
 	case bf.Table:
 		break
 	case bf.TableCell:
-		println("TableCellTableCell")
 		break
 	case bf.TableHead:
-		println("TableHeadTableHeadTableHead")
 		break
 	case bf.TableBody:
 		break
 	case bf.TableRow:
-		println("TableRowTableRow")
 		break
 	default:
 		panic("Unknown node type " + node.Type.String())
