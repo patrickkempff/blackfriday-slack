@@ -75,8 +75,6 @@ func (r *Renderer) cr(w io.Writer) {
 // RenderNode parses a single node of a syntax tree.
 func (r *Renderer) RenderNode(w io.Writer, node *bf.Node, entering bool) bf.WalkStatus {
 
-	println(node.Type.String())
-
 	switch node.Type {
 	case bf.Text:
 		if node.Parent.Type != bf.Image && node.Parent.Type != bf.TableCell {
